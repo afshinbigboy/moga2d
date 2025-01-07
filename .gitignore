@@ -170,5 +170,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# files_tobereplaced
 model_pth
-
+**slurm-*.out
