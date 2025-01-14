@@ -28,9 +28,8 @@ nvidia-smi
 # Load the environment variables
 # ./env_v2.sh
 
-base_path="${HOME}/deeplearning/moga2d"
+base_path="${HOME}/deeplearning/sina/moga2d"
 run_path="${base_path}/train_xmind_bou.py"
-output_dir='/cabinet/reza/sina/miccai2025/test'
 label="moga_cat_baseline"
 
 case "$SECTION" in
@@ -50,15 +49,15 @@ case "$SECTION" in
     python ${run_path} \
       --eval_interval 15 \
       --max_epochs 450 \
-      --model_name mogav5dw \
       --root_path /cabinet/dataset/Synapse/train_npz \
       --test_path /cabinet/dataset/Synapse/test_vol_h5 \
-      --output_dir ${output_dir} \
+      --output_dir '/cabinet/reza/sina/miccai2025/test-moga-af-boundaryskip-main-0.60.3' \
       --batch_size 16 \
-      --num_workers 16 \
-      --model_name mogav5dw \
+      --num_workers 4 \
+      --model_name mogav5dwskip \
       --optimizer 'SGD' \
       --base_lr 0.05 \
+      --scale_factors '0.6,0.3' \
       --dice_loss_weight 0.6 \
 
     ;;

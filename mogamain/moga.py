@@ -36,6 +36,27 @@ def build_norm_layer(norm_type, embed_dims):
         return nn.BatchNorm2d(embed_dims, eps=1e-5)
 
 
+class LayerNorm(nn.Module):
+    def __init__(self, normalized_shape, eps=1e-6, data_format="channels_last"):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(normalized_shape))
+        self.bias = nn.Parameter(torch.zeros(normalized_shape))
+        self.eps = eps
+        self.data_format = data_format
+        if self.data_format not in ["channels_last", "channels_first"]:
+            raise NotImplementedError
+        self.normalized_shape = (normalized_shape,)
+
+    def forward(self, x):
+        if self.data_format == "channels_last":
+            return F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+        elif self.data_format == "channels_first":
+            u = x.mean(1, keepdim=True)
+            s = (x - u).pow(2).mean(1, keepdim=True)
+            x = (x - u) / torch.sqrt(s + self.eps)
+            x = self.weight[:, None, None] * x + self.bias[:, None, None]
+            return x
+
 class LayerNorm2d(nn.Module):
     r""" LayerNorm that supports two data formats: channels_last (default) or channels_first. 
     The ordering of the dimensions in the inputs. channels_last corresponds to inputs with 
@@ -64,6 +85,47 @@ class LayerNorm2d(nn.Module):
             x = self.weight[:, None, None] * x + self.bias[:, None, None]
             return x
 
+
+class DoGEdge(nn.Module):
+  """
+  
+  """
+  def __init__(self,dim: int, scale_factor: list) -> None:
+      super().__init__()
+      
+      self.scale_factor = scale_factor
+      self.pwconv = nn.Conv2d(in_channels = dim,
+                              out_channels = dim,
+                              kernel_size = 1, 
+                              stride = 1,
+                              padding = 0)
+      self.norm = LayerNorm(dim, 
+                            eps=1e-6,
+                            data_format="channels_first")  
+      self.act = nn.GELU()
+  def forward(self, x):
+      x_ = x.clone()
+      _, C, H, W = x.shape
+      # DOG
+      x_1 = F.interpolate(x, 
+                          scale_factor = self.scale_factor[0], 
+                          mode = "bilinear")
+      x_2 = F.interpolate(x, 
+                          scale_factor = self.scale_factor[1], 
+                          mode = "bilinear")
+      # Upsample 
+      x_1 = F.interpolate(x_1, 
+                       size = H, 
+                       mode = 'bilinear')
+      
+      x_2 = F.interpolate(x_2, 
+                       size = H, 
+                       mode = 'bilinear')     
+      # Projection
+      ex = x_1 - x_2
+      x = ex + x
+      x = self.norm(self.act(self.pwconv(x)))
+      return x + x_
 
 class ElementScale(nn.Module):
     """A learnable element-wise scaler."""
@@ -374,6 +436,87 @@ class MultiOrderGatedAggregation(nn.Module):
         x = x + shortcut
         return x
 
+class MultiOrderGatedAggregationV2(nn.Module):
+    """Spatial Block with Multi-order Gated Aggregation Version 2 (With Boundary Enhancement).
+
+    Args:
+        embed_dims (int): Number of input channels.
+        attn_dw_dilation (list): Dilations of three DWConv layers.
+        attn_channel_split (list): The raletive ratio of splited channels.
+        attn_act_type (str): The activation type for Spatial Block.
+            Defaults to 'SiLU'.
+    """
+
+    def __init__(self,
+                 embed_dims,
+                 attn_dw_dilation=[1, 2, 3],
+                 attn_channel_split=[1, 3, 4],
+                 scale_factors = [0.8, 0.4],
+                 attn_act_type='SiLU',
+                 attn_force_fp32=False,
+                 use_feat_decompose = False
+                ):
+        super(MultiOrderGatedAggregationV2, self).__init__()
+
+        self.use_feat_decompose = use_feat_decompose
+        self.embed_dims = embed_dims
+        self.attn_force_fp32 = attn_force_fp32
+        self.proj_1 = nn.Conv2d(
+            in_channels=embed_dims, out_channels=embed_dims, kernel_size=1)
+        self.gate = nn.Conv2d(
+            in_channels=embed_dims, out_channels=embed_dims, kernel_size=1)
+        self.value = MultiOrderDWConv(
+            embed_dims=embed_dims,
+            dw_dilation=attn_dw_dilation,
+            channel_split=attn_channel_split,
+        )
+        self.proj_2 = nn.Conv2d(
+            in_channels=embed_dims, out_channels=embed_dims, kernel_size=1)
+
+        # activation for gating and value
+        self.act_value = build_act_layer(attn_act_type)
+        self.act_gate = build_act_layer(attn_act_type)
+
+        # decompose
+        self.sigma = ElementScale(
+            embed_dims, init_value=1e-5, requires_grad=True)
+
+        # boundary 
+        self.boundary = DoGEdge(
+            dim = embed_dims, scale_factor = scale_factors)
+
+    def feat_decompose(self, x):
+        x = self.proj_1(x)
+        # x_d: [B, C, H, W] -> [B, C, 1, 1]
+        x_d = F.adaptive_avg_pool2d(x, output_size=1)
+        x = x + self.sigma(x - x_d)
+        x = self.act_value(x)
+        return x
+
+    def forward_gating(self, g, v):
+        with torch.autocast(device_type='cuda', enabled=False):
+            g = g.to(torch.float32)
+            v = v.to(torch.float32)
+            return self.proj_2(self.act_gate(g) * self.act_gate(v))
+
+    def forward(self, x):
+        shortcut = x.clone()
+        # proj 1x1
+        if self.use_feat_decompose == True:
+            x = self.feat_decompose(x)
+        else:
+            x = self.boundary(x)
+
+        # gating and value branch
+        g = self.gate(x)
+        v = self.value(x)
+        # aggregation
+        if not self.attn_force_fp32:
+            x = self.proj_2(self.act_gate(g) * self.act_gate(v))
+        else:
+            x = self.forward_gating(self.act_gate(g), self.act_gate(v))
+        x = x + shortcut
+        return x
 
 class MogaBlock(nn.Module):
     """A block of MogaNet.
@@ -406,6 +549,9 @@ class MogaBlock(nn.Module):
                  attn_channel_split=[1, 3, 4],
                  attn_act_type='SiLU',
                  attn_force_fp32=False,
+                 scale_factors = [0.8, 0.4],
+                 use_feat_decompose = False,
+                 order_conv = "v2"
                 ):
         super(MogaBlock, self).__init__()
         self.out_channels = embed_dims
@@ -413,13 +559,25 @@ class MogaBlock(nn.Module):
         self.norm1 = build_norm_layer(norm_type, embed_dims)
 
         # spatial attention
-        self.attn = MultiOrderGatedAggregation(
-            embed_dims,
-            attn_dw_dilation=attn_dw_dilation,
-            attn_channel_split=attn_channel_split,
-            attn_act_type=attn_act_type,
-            attn_force_fp32=attn_force_fp32,
-        )
+        if order_conv == "v2":
+            self.attn = MultiOrderGatedAggregationV2(
+                embed_dims,
+                attn_dw_dilation=attn_dw_dilation,
+                attn_channel_split=attn_channel_split,
+                attn_act_type=attn_act_type,
+                attn_force_fp32=attn_force_fp32,
+                scale_factors = scale_factors,
+                use_feat_decompose = use_feat_decompose
+            )
+        else:
+            self.attn = MultiOrderGatedAggregation(
+                embed_dims,
+                attn_dw_dilation=attn_dw_dilation,
+                attn_channel_split=attn_channel_split,
+                attn_act_type=attn_act_type,
+                attn_force_fp32=attn_force_fp32
+            )
+
         self.drop_path = DropPath(
             drop_path_rate) if drop_path_rate > 0. else nn.Identity()
 

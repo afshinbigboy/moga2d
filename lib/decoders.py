@@ -14,6 +14,7 @@ import sys
 sys.path.append('./..')  # Assuming test.ipynb is in the lib directory  
 from mogamain.modifiedmoganet import MogaBlock
 from mogamain.moga import MogaBlock as MogaBlock_af
+from mogamain.moga import DoGEdge
 from mogamain.multihead_diffattn import MultiheadDiffAttn, MultiheadDiffAttnCrossV1, MultiheadDiffAttnCrossV2
 # # import sys  
 # # sys.path.append('./..')  # Assuming test.ipynb is in the lib directory  
@@ -1013,7 +1014,6 @@ class EMCADv4(nn.Module):
         d2 = self.cab2(d2)*d2
         d2 = self.sab(d2)*d2
         d2 = self.moga2(d2)
-#         print(d2.shape)
         
         # EUCB1
         d1 = self.eucb1(d2)
@@ -1062,11 +1062,6 @@ class EMCADv5(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag3 = LGAG(F_g=channels[1], 
-#                           F_l=channels[1], 
-#                           F_int=channels[1]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[1]//2)
         self.proj3 = nn.Conv2d(in_channels= channels[1], out_channels = channels[1], kernel_size = 1, stride = 1)
         
         self.moga3 = MogaBlock(embed_dims= channels[1], 
@@ -1085,11 +1080,6 @@ class EMCADv5(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag2 = LGAG(F_g=channels[2], 
-#                           F_l=channels[2], 
-#                           F_int=channels[2]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[2]//2)
         self.proj2 = nn.Conv2d(in_channels= channels[2], out_channels = channels[2], kernel_size = 1, stride = 1)
     
         self.moga2 = MogaBlock(embed_dims= channels[2], 
@@ -1104,7 +1094,6 @@ class EMCADv5(nn.Module):
                                attn_force_fp32= False)
         
         self.eucb1 = EUCB(in_channels=channels[2], out_channels=channels[3], kernel_size=eucb_ks, stride=eucb_ks//2)
-#         self.lgag1 = LGAG(F_g=channels[3], F_l=channels[3], F_int=int(channels[3]/2), kernel_size=lgag_ks, groups=int(channels[3]/2))
         
         self.proj1 = nn.Conv2d(in_channels= channels[3], out_channels = channels[3], kernel_size = 1, stride = 1)
         
@@ -1139,10 +1128,8 @@ class EMCADv5(nn.Module):
         
 
         # LGAG3
-#         x3 = self.lgag3(g=d3, x=skips[0])
         
         # Additive aggregation 3
-#         print(skips[0].shape, d3.shape)
         d3 = d3 + skips[0]
         
         self.proj3(d3)
@@ -1157,10 +1144,8 @@ class EMCADv5(nn.Module):
         # print(d2.shape)
         
         # LGAG2
-#         x2 = self.lgag2(g=d2, x=skips[1])
         
         # Additive aggregation 2
-#         print(skips[1].shape, d2.shape)
         d2 = d2 + skips[1] 
         self.proj2(d2)
         
@@ -1174,7 +1159,6 @@ class EMCADv5(nn.Module):
         d1 = self.eucb1(d2)
         
         # LGAG1
-#         x1 = self.lgag1(g=d1, x=skips[2])
         
         # Additive aggregation 1
         d1 = d1 + skips[2]
@@ -1315,7 +1299,6 @@ class EMCADv4(nn.Module):
         d2 = self.cab2(d2)*d2
         d2 = self.sab(d2)*d2
         d2 = self.moga2(d2)
-#         print(d2.shape)
         
         # EUCB1
         d1 = self.eucb1(d2)
@@ -1364,11 +1347,6 @@ class EMCADv5(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag3 = LGAG(F_g=channels[1], 
-#                           F_l=channels[1], 
-#                           F_int=channels[1]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[1]//2)
         self.proj3 = nn.Conv2d(in_channels= channels[1], out_channels = channels[1], kernel_size = 1, stride = 1)
         
         self.moga3 = MogaBlock(embed_dims= channels[1], 
@@ -1387,11 +1365,6 @@ class EMCADv5(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag2 = LGAG(F_g=channels[2], 
-#                           F_l=channels[2], 
-#                           F_int=channels[2]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[2]//2)
         self.proj2 = nn.Conv2d(in_channels= channels[2], out_channels = channels[2], kernel_size = 1, stride = 1)
     
         self.moga2 = MogaBlock(embed_dims= channels[2], 
@@ -1406,7 +1379,6 @@ class EMCADv5(nn.Module):
                                attn_force_fp32= False)
         
         self.eucb1 = EUCB(in_channels=channels[2], out_channels=channels[3], kernel_size=eucb_ks, stride=eucb_ks//2)
-#         self.lgag1 = LGAG(F_g=channels[3], F_l=channels[3], F_int=int(channels[3]/2), kernel_size=lgag_ks, groups=int(channels[3]/2))
         
         self.proj1 = nn.Conv2d(in_channels= channels[3], out_channels = channels[3], kernel_size = 1, stride = 1)
         
@@ -1441,10 +1413,8 @@ class EMCADv5(nn.Module):
         
 
         # LGAG3
-#         x3 = self.lgag3(g=d3, x=skips[0])
         
         # Additive aggregation 3
-#         print(skips[0].shape, d3.shape)
         d3 = d3 + skips[0]
         
         self.proj3(d3)
@@ -1452,17 +1422,14 @@ class EMCADv5(nn.Module):
         # d3 = self.cab3(d3)*d3
         # d3 = self.sab(d3)*d3  
         d3 = self.moga3(d3)
-#         print(d3.shape)
         
         # EUCB2
         d2 = self.eucb2(d3)
         # print(d2.shape)
         
         # LGAG2
-#         x2 = self.lgag2(g=d2, x=skips[1])
         
         # Additive aggregation 2
-#         print(skips[1].shape, d2.shape)
         d2 = d2 + skips[1] 
         self.proj2(d2)
         
@@ -1476,7 +1443,6 @@ class EMCADv5(nn.Module):
         d1 = self.eucb1(d2)
         
         # LGAG1
-#         x1 = self.lgag1(g=d1, x=skips[2])
         
         # Additive aggregation 1
         d1 = d1 + skips[2]
@@ -1521,11 +1487,7 @@ class EMCADv6(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag3 = LGAG(F_g=channels[1], 
-#                           F_l=channels[1], 
-#                           F_int=channels[1]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[1]//2)
+
         self.diffattn3 = MultiheadDiffAttn(embed_dim= channels[1] * 2, depth= 1, num_heads= num_heads[0])
 
         self.proj3 = nn.Conv2d(in_channels= channels[1] * 2 , out_channels = channels[1], kernel_size = 1, stride = 1)
@@ -1546,11 +1508,7 @@ class EMCADv6(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag2 = LGAG(F_g=channels[2], 
-#                           F_l=channels[2], 
-#                           F_int=channels[2]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[2]//2)
+
         self.diffattn2 = MultiheadDiffAttn(embed_dim= channels[2] * 2, depth= 2, num_heads= num_heads[1])
 
         self.proj2 = nn.Conv2d(in_channels= channels[2] *2 , out_channels = channels[2], kernel_size = 1, stride = 1)
@@ -1567,7 +1525,6 @@ class EMCADv6(nn.Module):
                                attn_force_fp32= False)
         
         self.eucb1 = EUCB(in_channels=channels[2], out_channels=channels[3], kernel_size=eucb_ks, stride=eucb_ks//2)
-#         self.lgag1 = LGAG(F_g=channels[3], F_l=channels[3], F_int=int(channels[3]/2), kernel_size=lgag_ks, groups=int(channels[3]/2))
         self.diffattn1 = MultiheadDiffAttn(embed_dim= channels[3] * 2, depth= 3, num_heads= num_heads[2])
 
         self.proj1 = nn.Conv2d(in_channels= channels[3] * 2, out_channels = channels[3], kernel_size = 1, stride = 1)
@@ -1603,21 +1560,16 @@ class EMCADv6(nn.Module):
         
 
         # LGAG3
-#         x3 = self.lgag3(g=d3, x=skips[0])
         
         # Additive aggregation 3
-#         print(skips[0].shape, d3.shape)
         
         d3 = torch.cat([d3, skips[0]], dim=1)
-#         print("1",d3.shape)
         d3 = d3.view(d3.shape[0],-1, d3.shape[1]) # B, L, C
-#         print("2",d3.shape)
-        d3 = self.diffattn3(d3)
-#         print("3",d3.shape)
+        d3 = self.diffattn3(d3) * d3
         d3 = d3.view(d3.shape[0], d3.shape[2], d3.shape[1]//self.input_size[0], d3.shape[1]//self.input_size[0])
-#         print("4",d3.shape)
-        d3 = self.proj3(d3)
-#         print("5",d3.shape)
+
+        d3 = self.proj3(d3) + skips[0]
+
         # MSCAM3
         # d3 = self.cab3(d3)*d3
         # d3 = self.sab(d3)*d3  
@@ -1626,23 +1578,17 @@ class EMCADv6(nn.Module):
         
         # EUCB2
         d2 = self.eucb2(d3)
-#         print("6",d2.shape)
-        # print(d2.shape)
-        
-        # LGAG2
-#         x2 = self.lgag2(g=d2, x=skips[1])
-        
-        # Additive aggregation 2 
+
         d2 = torch.cat([d2, skips[1]], dim=1)
-#         print("7",d2.shape)
+
         d2 = d2.view(d2.shape[0],-1, d2.shape[1]) # B L C # B 784 256
-#         print("8",d2.shape)
-        d2 = self.diffattn2(d2)
-#         print("9",d2.shape)
+
+        d2 = self.diffattn2(d2) * d2
+
         d2 = d2.view(d2.shape[0], d2.shape[2], d2.shape[1]//self.input_size[1], d2.shape[1]//self.input_size[1])
-#         print("10",d2.shape)
-        d2 = self.proj2(d2)
-#         print("11",d2.shape)
+
+        d2 = self.proj2(d2) + skips[1]
+
         
         # MSCAM2
         # d2 = self.cab2(d2)*d2
@@ -1652,22 +1598,14 @@ class EMCADv6(nn.Module):
         
         # EUCB1
         d1 = self.eucb1(d2)
-        
-        # LGAG1
-#         x1 = self.lgag1(g=d1, x=skips[2])
-        
+        # LGAG1        
         # Additive aggregation 1
         #d1 = d1 + skips[2]
         d1 = torch.cat([d1, skips[2]], dim=1)
-#         print("12",d1.shape)
         d1 = d1.view(d1.shape[0],-1, d1.shape[1])
-#         print("13",d1.shape)
-        d1 = self.diffattn1(d1)
-#         print("14",d1.shape)
+        d1 = self.diffattn1(d1) * d1
         d1 = d1.view(d1.shape[0], d1.shape[2], d1.shape[1]//self.input_size[2], d1.shape[1]//self.input_size[2])
-#         print("15",d1.shape)
-        d1 = self.proj1(d1)
-#         print("16",d1.shape)
+        d1 = self.proj1(d1) + skips[2]
         # MSCAM1
         # d1 = self.cab1(d1)*d1
         # d1 = self.sab(d1)*d1
@@ -1792,11 +1730,9 @@ class EMCADv7(nn.Module):
 
         # EUCB3
         d3 = self.eucb3(d4)
-#         print("D3 is", d3.shape)
-#         print("skips[0] is", skips[0].shape)
         
         d3 = self.diffattn3(skips[0], d3)
-#         print("3",d3.shape)
+
         d3 = self.proj3(d3)
 
         d3 = self.moga3(d3)
@@ -1806,9 +1742,8 @@ class EMCADv7(nn.Module):
         d2 = self.eucb2(d3)
 
         d2 = self.diffattn2(skips[1] ,d2)
-#         print("9",d2.shape)
+
         d2 = self.proj2(d2)
-        
 
         d2 = self.moga2(d2)
         
@@ -1816,7 +1751,6 @@ class EMCADv7(nn.Module):
         d1 = self.eucb1(d2)
         
         d1 = self.diffattn1(skips[2] ,d1)
-#         print("14",d1.shape)
         d1 = self.proj1(d1)
 
         d1 = self.moga1(d1)
@@ -1872,9 +1806,6 @@ class EMCADv8(nn.Module):
                                out_channels = channels[1], 
                                kernel_size = 1, stride = 1)
         
-#         self.mlp3 = Mlp(in_features = channels[1],
-#                        hidden_features = channels[1] * mlp_ratio,
-#                        out_features = channels[1])
                         
         
         self.moga3 = MogaBlock(embed_dims= channels[1], 
@@ -1904,9 +1835,6 @@ class EMCADv8(nn.Module):
                                out_channels = channels[2], 
                                kernel_size = 1, stride = 1)
         
-#         self.mlp2 = Mlp(in_features = channels[2],
-#                         hidden_features = channels[2] * mlp_ratio,
-#                         out_features = channels[2])
     
         self.moga2 = MogaBlock(embed_dims= channels[2], 
                                ffn_ratio=4, drop_rate= 0, 
@@ -1932,11 +1860,7 @@ class EMCADv8(nn.Module):
         self.proj1 = nn.Conv2d(in_channels= channels[3], 
                                out_channels = channels[3], 
                                kernel_size = 1, stride = 1)
-        
-#         self.mlp1 = Mlp(in_features = channels[3],
-#                         hidden_features = channels[3] * mlp_ratio,
-#                         out_features = channels[3])
-            
+                    
         self.moga1 = MogaBlock(embed_dims= channels[3], 
                                ffn_ratio=4, drop_rate= 0, 
                                drop_path_rate=0, 
@@ -1956,7 +1880,6 @@ class EMCADv8(nn.Module):
         d3 = self.eucb3(d4)
         
         d3 = self.diffattn3(d3, skips[0])
-#         print("3",d3.shape)
         d3 = self.proj3(d3)
 
         d3 = self.moga3(d3)
@@ -1966,7 +1889,6 @@ class EMCADv8(nn.Module):
         d2 = self.eucb2(d3)
 
         d2 = self.diffattn2(d2, skips[1])
-#         print("9",d2.shape)
         d2 = self.proj2(d2)
         
 
@@ -1976,7 +1898,6 @@ class EMCADv8(nn.Module):
         d1 = self.eucb1(d2)
         
         d1 = self.diffattn1(d1, skips[2])
-#         print("14",d1.shape)
         d1 = self.proj1(d1)
 
         d1 = self.moga1(d1)
@@ -2016,11 +1937,6 @@ class EMCADv9(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag3 = LGAG(F_g=channels[1], 
-#                           F_l=channels[1], 
-#                           F_int=channels[1]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[1]//2)
         self.diffattn3 = MultiheadDiffAttn(embed_dim= channels[1], depth= 1, num_heads= num_heads[0])
 
         self.proj3 = nn.Conv2d(in_channels= channels[1] , out_channels = channels[1], kernel_size = 1, stride = 1)
@@ -2041,11 +1957,6 @@ class EMCADv9(nn.Module):
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
         
-#         self.lgag2 = LGAG(F_g=channels[2], 
-#                           F_l=channels[2], 
-#                           F_int=channels[2]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[2]//2)
         self.diffattn2 = MultiheadDiffAttn(embed_dim= channels[2], depth= 2, num_heads= num_heads[1])
 
         self.proj2 = nn.Conv2d(in_channels= channels[2] , out_channels = channels[2], kernel_size = 1, stride = 1)
@@ -2062,7 +1973,6 @@ class EMCADv9(nn.Module):
                                attn_force_fp32= False)
         
         self.eucb1 = EUCB(in_channels=channels[2], out_channels=channels[3], kernel_size=eucb_ks, stride=eucb_ks//2)
-#         self.lgag1 = LGAG(F_g=channels[3], F_l=channels[3], F_int=int(channels[3]/2), kernel_size=lgag_ks, groups=int(channels[3]/2))
         self.diffattn1 = MultiheadDiffAttn(embed_dim= channels[3] , depth= 3, num_heads= num_heads[2])
 
         self.proj1 = nn.Conv2d(in_channels= channels[3] , out_channels = channels[3], kernel_size = 1, stride = 1)
@@ -2098,23 +2008,15 @@ class EMCADv9(nn.Module):
         
 
         # LGAG3
-#         x3 = self.lgag3(g=d3, x=skips[0])
         
         # Additive aggregation 3
-#         print(skips[0].shape, d3.shape)
         
-#         d3 = torch.cat([d3, skips[0]], dim=1)
         d3 = d3 + skips[0]
         r3 = d3.clone()
-#         print("1",d3.shape)
         d3 = d3.view(d3.shape[0],-1, d3.shape[1]) # B, L, C
-#         print("2",d3.shape)
         d3 = self.diffattn3(d3)
-#         print("3",d3.shape)
         d3 = d3.view(d3.shape[0], d3.shape[2], d3.shape[1]//self.input_size[0], d3.shape[1]//self.input_size[0])
-#         print("4",d3.shape)
         d3 = self.proj3(d3)
-#         print("5",d3.shape)
         # MSCAM3
         # d3 = self.cab3(d3)*d3
         # d3 = self.sab(d3)*d3  
@@ -2123,25 +2025,17 @@ class EMCADv9(nn.Module):
         
         # EUCB2
         d2 = self.eucb2(d3)
-#         print("6",d2.shape)
         # print(d2.shape)
         
         # LGAG2
-#         x2 = self.lgag2(g=d2, x=skips[1])
         
         # Additive aggregation 2 
-#         d2 = torch.cat([d2, skips[1]], dim=1)
         d2 = d2 + skips[1]
         r2 = d2.clone()
-#         print("7",d2.shape)
         d2 = d2.view(d2.shape[0],-1, d2.shape[1]) # B L C # B 784 256
-#         print("8",d2.shape)
         d2 = self.diffattn2(d2)
-#         print("9",d2.shape)
         d2 = d2.view(d2.shape[0], d2.shape[2], d2.shape[1]//self.input_size[1], d2.shape[1]//self.input_size[1])
-#         print("10",d2.shape)
         d2 = self.proj2(d2)
-#         print("11",d2.shape)
         
         # MSCAM2
         # d2 = self.cab2(d2)*d2
@@ -2153,21 +2047,14 @@ class EMCADv9(nn.Module):
         d1 = self.eucb1(d2)
         
         # LGAG1
-#         x1 = self.lgag1(g=d1, x=skips[2])
         
         # Additive aggregation 1
         d1 = d1 + skips[2]
         r1 = d1.clone()
-#         d1 = torch.cat([d1, skips[2]], dim=1)
-#         print("12",d1.shape)
         d1 = d1.view(d1.shape[0],-1, d1.shape[1])
-#         print("13",d1.shape)
         d1 = self.diffattn1(d1)
-#         print("14",d1.shape)
         d1 = d1.view(d1.shape[0], d1.shape[2], d1.shape[1]//self.input_size[2], d1.shape[1]//self.input_size[2])
-#         print("15",d1.shape)
         d1 = self.proj1(d1)
-#         print("16",d1.shape)
         # MSCAM1
         # d1 = self.cab1(d1)*d1
         # d1 = self.sab(d1)*d1
@@ -2176,7 +2063,7 @@ class EMCADv9(nn.Module):
         return d1 
 
     
-class EMCADv5_DW(nn.Module):
+class EMCADv5_DW_Skip(nn.Module):
     """
     Efficient multi-scale convolutional attention decoding (EMCAD)
     
@@ -2187,8 +2074,8 @@ class EMCADv5_DW(nn.Module):
 
 
     """
-    def __init__(self, channels=[512,320,128,64], kernel_sizes=[1,3,5], expansion_factor=6, dw_parallel=True, add=True, lgag_ks=3, activation='relu6'):
-        super(EMCADv5_DW,self).__init__()
+    def __init__(self, channels=[512,320,128,64], kernel_sizes=[1,3,5], scale_factors = [0.8,0.4], expansion_factor=6, dw_parallel=True, add=True, lgag_ks=3, activation='relu6'):
+        super(EMCADv5_DW_Skip,self).__init__()
         eucb_ks = 3 # kernel size for eucb
         self.moga4 = MogaBlock_af(embed_dims= channels[0], 
                                ffn_ratio=4, drop_rate= 0, 
@@ -2199,19 +2086,17 @@ class EMCADv5_DW(nn.Module):
                                attn_dw_dilation= [1,2,3],
                                attn_channel_split= [1,3,4],
                                attn_act_type= "SiLU",
-                               attn_force_fp32= False)
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v1")
         	
         self.eucb3 = EUCB(in_channels=channels[0], 
                           out_channels=channels[1], 
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
-        
-#         self.lgag3 = LGAG(F_g=channels[1], 
-#                           F_l=channels[1], 
-#                           F_int=channels[1]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[1]//2)
-        self.proj3 = nn.Conv2d(in_channels= channels[1], out_channels = channels[1], kernel_size = 1, stride = 1)
+
+        self.boundary3 = DoGEdge(dim = channels[1], scale_factor = scale_factors)
         
         self.moga3 = MogaBlock_af(embed_dims= channels[1], 
                                ffn_ratio=4, drop_rate= 0, 
@@ -2222,19 +2107,16 @@ class EMCADv5_DW(nn.Module):
                                attn_dw_dilation= [1,2,3],
                                attn_channel_split= [1,3,4],
                                attn_act_type= "SiLU",
-                               attn_force_fp32= False)
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v1")
         	
         self.eucb2 = EUCB(in_channels=channels[1], 
                           out_channels=channels[2], 
                           kernel_size=eucb_ks, 
                           stride=eucb_ks//2)
-        
-#         self.lgag2 = LGAG(F_g=channels[2], 
-#                           F_l=channels[2], 
-#                           F_int=channels[2]//2, 
-#                           kernel_size=lgag_ks, 
-#                           groups=channels[2]//2)
-        self.proj2 = nn.Conv2d(in_channels= channels[2], out_channels = channels[2], kernel_size = 1, stride = 1)
+        self.boundary2 = DoGEdge(dim = channels[2], scale_factor = scale_factors)
     
         self.moga2 = MogaBlock_af(embed_dims= channels[2], 
                                ffn_ratio=4, drop_rate= 0, 
@@ -2245,12 +2127,14 @@ class EMCADv5_DW(nn.Module):
                                attn_dw_dilation= [1,2,3],
                                attn_channel_split= [1,3,4],
                                attn_act_type= "SiLU",
-                               attn_force_fp32= False)
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v1")
         
         self.eucb1 = EUCB(in_channels=channels[2], out_channels=channels[3], kernel_size=eucb_ks, stride=eucb_ks//2)
-#         self.lgag1 = LGAG(F_g=channels[3], F_l=channels[3], F_int=int(channels[3]/2), kernel_size=lgag_ks, groups=int(channels[3]/2))
         
-        self.proj1 = nn.Conv2d(in_channels= channels[3], out_channels = channels[3], kernel_size = 1, stride = 1)
+        self.boundary1 = DoGEdge(dim = channels[3], scale_factor = scale_factors)
         
         self.moga1 = MogaBlock_af(embed_dims= channels[3], 
                                ffn_ratio=4, drop_rate= 0, 
@@ -2261,7 +2145,10 @@ class EMCADv5_DW(nn.Module):
                                attn_dw_dilation= [1,2,3],
                                attn_channel_split= [1,3,4],
                                attn_act_type= "SiLU",
-                               attn_force_fp32= False)
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v1")
         
         # self.cab4 = CAB(channels[0])
         # self.cab3 = CAB(channels[1])
@@ -2283,10 +2170,159 @@ class EMCADv5_DW(nn.Module):
         
 
         # LGAG3
-#         x3 = self.lgag3(g=d3, x=skips[0])
         
         # Additive aggregation 3
-#         print(skips[0].shape, d3.shape)
+        skips_3 = self.boundary3(skips[0])
+        
+        d3 = d3 + skips_3
+        
+        # MSCAM3
+        # d3 = self.cab3(d3)*d3
+        # d3 = self.sab(d3)*d3  
+        d3 = self.moga3(d3)
+        # print(d3.shape)
+        
+        # EUCB2
+        d2 = self.eucb2(d3)
+        # print(d2.shape)
+        
+        # LGAG2
+        
+        # Additive aggregation 2
+        skips_2 = self.boundary2(skips[1])
+        d2 = d2 + skips_2
+        
+        # MSCAM2
+        # d2 = self.cab2(d2)*d2
+        # d2 = self.sab(d2)*d2
+        d2 = self.moga2(d2)
+        # print(d2.shape)
+        
+        # EUCB1
+        d1 = self.eucb1(d2)
+        
+        # LGAG1
+        
+        # Additive aggregation 1
+        skips_1 = self.boundary1(skips[2])
+        d1 = d1 + skips_1
+        # MSCAM1
+        # d1 = self.cab1(d1)*d1
+        # d1 = self.sab(d1)*d1
+        d1 = self.moga1(d1)
+        
+        return d1    
+
+class EMCADv5_DW(nn.Module):
+    """
+    Efficient multi-scale convolutional attention decoding (EMCAD)
+    
+    This version of EMCAD uses the modified MogaBlock from Sinanet and excluded the CAB, LGAG, SAB layers, and Deep supervision.
+    The other components are the same as EMCAD except the modified version of MOGA (improved by Afshin).
+
+    Parameters: 4.98 M,	FLOPs: 17.88 G
+
+
+    """
+    def __init__(self, channels=[512,320,128,64], kernel_sizes=[1,3,5], scale_factors = [0.8,0.4], expansion_factor=6, dw_parallel=True, add=True, lgag_ks=3, activation='relu6'):
+        super(EMCADv5_DW,self).__init__()
+        eucb_ks = 3 # kernel size for eucb
+        self.moga4 = MogaBlock_af(embed_dims= channels[0], 
+                               ffn_ratio=4, drop_rate= 0, 
+                               drop_path_rate=0, 
+                               act_type='GELU',
+                               norm_type="BN",
+                               init_value= 1e-6,
+                               attn_dw_dilation= [1,2,3],
+                               attn_channel_split= [1,3,4],
+                               attn_act_type= "SiLU",
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v2")
+        	
+        self.eucb3 = EUCB(in_channels=channels[0], 
+                          out_channels=channels[1], 
+                          kernel_size=eucb_ks, 
+                          stride=eucb_ks//2)
+        
+        self.proj3 = nn.Conv2d(in_channels= channels[1], out_channels = channels[1], kernel_size = 1, stride = 1)
+        
+        self.moga3 = MogaBlock_af(embed_dims= channels[1], 
+                               ffn_ratio=4, drop_rate= 0, 
+                               drop_path_rate=0, 
+                               act_type='GELU',
+                               norm_type="BN",
+                               init_value= 1e-6,
+                               attn_dw_dilation= [1,2,3],
+                               attn_channel_split= [1,3,4],
+                               attn_act_type= "SiLU",
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v2")
+        	
+        self.eucb2 = EUCB(in_channels=channels[1], 
+                          out_channels=channels[2], 
+                          kernel_size=eucb_ks, 
+                          stride=eucb_ks//2)
+        
+        self.proj2 = nn.Conv2d(in_channels= channels[2], out_channels = channels[2], kernel_size = 1, stride = 1)
+    
+        self.moga2 = MogaBlock_af(embed_dims= channels[2], 
+                               ffn_ratio=4, drop_rate= 0, 
+                               drop_path_rate=0, 
+                               act_type='GELU',
+                               norm_type="BN",
+                               init_value= 1e-6,
+                               attn_dw_dilation= [1,2,3],
+                               attn_channel_split= [1,3,4],
+                               attn_act_type= "SiLU",
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v2")
+        
+        self.eucb1 = EUCB(in_channels=channels[2], out_channels=channels[3], kernel_size=eucb_ks, stride=eucb_ks//2)
+        
+        self.proj1 = nn.Conv2d(in_channels= channels[3], out_channels = channels[3], kernel_size = 1, stride = 1)
+        
+        self.moga1 = MogaBlock_af(embed_dims= channels[3], 
+                               ffn_ratio=4, drop_rate= 0, 
+                               drop_path_rate=0, 
+                               act_type='GELU',
+                               norm_type="BN",
+                               init_value= 1e-6,
+                               attn_dw_dilation= [1,2,3],
+                               attn_channel_split= [1,3,4],
+                               attn_act_type= "SiLU",
+                               attn_force_fp32= False,
+                               scale_factors = scale_factors,
+                               use_feat_decompose = False,
+                               order_conv = "v2")
+        
+        # self.cab4 = CAB(channels[0])
+        # self.cab3 = CAB(channels[1])
+        # self.cab2 = CAB(channels[2])
+        # self.cab1 = CAB(channels[3])
+        
+        # self.sab = SAB()
+       
+      
+    def forward(self, x, skips):
+            
+        # MSCAM4
+        # d4 = self.cab4(x)*x
+        # d4 = self.sab(d4)*d4 
+        d4 = self.moga4(x)
+        
+        # EUCB3
+        d3 = self.eucb3(d4)
+        
+
+        # LGAG3
+        
+        # Additive aggregation 3
         d3 = d3 + skips[0]
         
         self.proj3(d3)
@@ -2301,10 +2337,8 @@ class EMCADv5_DW(nn.Module):
         # print(d2.shape)
         
         # LGAG2
-#         x2 = self.lgag2(g=d2, x=skips[1])
         
         # Additive aggregation 2
-#         print(skips[1].shape, d2.shape)
         d2 = d2 + skips[1] 
         self.proj2(d2)
         
@@ -2318,7 +2352,6 @@ class EMCADv5_DW(nn.Module):
         d1 = self.eucb1(d2)
         
         # LGAG1
-#         x1 = self.lgag1(g=d1, x=skips[2])
         
         # Additive aggregation 1
         d1 = d1 + skips[2]
@@ -2329,7 +2362,6 @@ class EMCADv5_DW(nn.Module):
         d1 = self.moga1(d1)
         
         return d1    
-
     
 if __name__ == '__main__':
     # Test the EMCAD module

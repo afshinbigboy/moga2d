@@ -5,7 +5,7 @@ import random
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-from lib.networks import EMCADNetv3, EMCADNetv4, EMCADNetv5, EMCADNetv6, EMCADNetv7, EMCADNetv8, EMCADNetv9, EMCADNetv5_DW
+from lib.networks import EMCADNetv3, EMCADNetv4, EMCADNetv5, EMCADNetv6, EMCADNetv7, EMCADNetv8, EMCADNetv9, EMCADNetv5_DW, EMCADNetv5_DW_Skip
 # from networks.WaveFormerCompact import Model as ModelCompact
 
 from trainer_xmind_bou import trainer_synapse
@@ -63,6 +63,8 @@ parser.add_argument('--deterministic', type=int,  default=1,
                     help='whether use deterministic training')
 parser.add_argument('--kernel_sizes', type=int, nargs='+',
                     default=[1, 3, 5], help='multi-scale kernel sizes in MSDC block')
+parser.add_argument('--scale_factors', type = str,
+                    default = "0.8,0.4", help = "Boundary enhancement downsample scale factors")
 parser.add_argument('--expansion_factor', type=int,
                     default=2, help='expansion factor in MSCB block')
 parser.add_argument('--activation_mscb', type=str,
@@ -143,7 +145,8 @@ if __name__ == "__main__":
         dw_mode = 'series'
     else: 
         dw_mode = 'parallel'
-    
+    scale_factors = list(map(float, args.scale_factors.split(',')))
+
     if args.model_name =="mogav3":
         net = EMCADNetv3(
             num_classes=args.num_classes, 
@@ -231,7 +234,21 @@ if __name__ == "__main__":
     elif args.model_name =="mogav5dw":
         net = EMCADNetv5_DW(
             num_classes=args.num_classes, 
-            kernel_sizes=args.kernel_sizes, 
+            kernel_sizes=args.kernel_sizes,
+            scale_factors = scale_factors, 
+            expansion_factor=args.expansion_factor, 
+            dw_parallel=not args.no_dw_parallel, 
+            add=not args.concatenation, 
+            lgag_ks=args.lgag_ks, 
+            activation=args.activation_mscb, 
+            encoder=args.encoder, 
+            pretrain= not args.no_pretrain
+        ).cuda(0)
+    elif args.model_name =="mogav5dwskip":
+        net = EMCADNetv5_DW_Skip(
+            num_classes=args.num_classes, 
+            kernel_sizes=args.kernel_sizes,
+            scale_factors = scale_factors, 
             expansion_factor=args.expansion_factor, 
             dw_parallel=not args.no_dw_parallel, 
             add=not args.concatenation, 
