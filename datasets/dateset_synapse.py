@@ -130,7 +130,6 @@ class SynapseDatasetFast(Dataset):
         self.norm_x_transform = norm_x_transform
         self.norm_y_transform = norm_y_transform
         self.split = split
-        # self.sample_list = open(os.path.join(list_dir, self.split+'.txt')).readlines()
         self.sample_list = [d.strip('\n') for d in open(os.path.join(list_dir, self.split+'.txt')).readlines()]
         self.data_dir = base_dir
         self.img_size = img_size

@@ -32,7 +32,7 @@ parser.add_argument('--output_dir', type=str,  default='./model_out',help='outpu
 parser.add_argument('--max_iterations', type=int, default=90000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int, default=400, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int, default=20, help='batch_size per gpu')
-parser.add_argument('--num_workers', type=int, default=4, help='num_workers')
+parser.add_argument('--num_workers', type=int, default=17, help='num_workers')
 parser.add_argument('--eval_interval', type=int, default=20, help='eval_interval')
 parser.add_argument('--model_name', type=str, default='mogav5', help='model_name')
 parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')

@@ -100,9 +100,7 @@ def trainer_synapse(args, model, snapshot_path):
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
 
-    trainloader = DataLoader(db_train, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True,
-                             worker_init_fn=worker_init_fn)
-
+    trainloader = DataLoader(db_train, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True, worker_init_fn=worker_init_fn)
     db_test = DatasetClass(base_dir=args.test_path, split="test_vol", list_dir=args.list_dir, img_size=args.img_size)
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
 
