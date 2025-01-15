@@ -75,7 +75,7 @@ class RandomGenerator(object):
 
 
 class Synapse_dataset(Dataset):
-    def __init__(self, base_dir, list_dir, split, img_size, norm_x_transform=None, norm_y_transform=None):
+    def __init__(self, base_dir, list_dir, split, img_size, norm_x_transform=None, norm_y_transform=None, fast=False):
         self.norm_x_transform = norm_x_transform
         self.norm_y_transform = norm_y_transform
         self.split = split
@@ -95,12 +95,14 @@ class Synapse_dataset(Dataset):
             iaa.PiecewiseAffine(scale=(0.008, 0.03)),
             iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)})
         ], random_order=True)
-        
 
+        self.fast = fast
+        if self.fast:
+            self.__load_all_data()
+        
     def __len__(self):
         return len(self.sample_list)
 
-    
     def __getitem__(self, idx):
         if self.split == "train":
             slice_name = self.sample_list[idx].strip('\n')
@@ -112,7 +114,6 @@ class Synapse_dataset(Dataset):
             if x != self.img_size or y != self.img_size:
                 image = zoom(image, (self.img_size / x, self.img_size / y), order=3)  # why not 3?
                 label = zoom(label, (self.img_size / x, self.img_size / y), order=0)
-
         else:
             vol_name = self.sample_list[idx].strip('\n')
             filepath = self.data_dir + "/{}.npy.h5".format(vol_name)
@@ -130,6 +131,7 @@ class Synapse_dataset(Dataset):
 
 class SynapseDatasetFast(Dataset):
     def __init__(self, base_dir, list_dir, split, img_size, norm_x_transform=None, norm_y_transform=None):
+        print("Using FastDataset. :)\nLoading all data into memory...")
         self.norm_x_transform = norm_x_transform
         self.norm_y_transform = norm_y_transform
         self.split = split

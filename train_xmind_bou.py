@@ -52,6 +52,7 @@ parser.add_argument('--img_size', type=int, default=224, help='input patch size 
 parser.add_argument('--z_spacing', type=int, default=1, help='z_spacing')
 parser.add_argument('--seed', type=int, default=1234, help='random seed')
 parser.add_argument('--amp', action='store_true', help='AMP mode')
+parser.add_argument('--fast_data', action='store_true', help='no AMP mode')
 
 # parser.add_argument('--cfg', type=str, required=True, metavar="FILE", help='path to config file', )
 parser.add_argument(
@@ -225,4 +226,4 @@ if __name__ == "__main__":
         ).cuda(0)
         
     trainer = {'Synapse': trainer_synapse,}
-    trainer[dataset_name](args, torch.compile(net), args.output_dir)
+    trainer[dataset_name](args, net, args.output_dir)

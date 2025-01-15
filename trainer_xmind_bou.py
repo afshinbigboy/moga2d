@@ -91,7 +91,12 @@ def trainer_synapse(args, model, snapshot_path):
     ])
     y_transforms = transforms.ToTensor()
 
-    db_train = Synapse_dataset(base_dir=args.root_path, list_dir=args.list_dir, split="train",img_size=args.img_size,
+    if args.fast_data:
+        DatasetClass = SynapseDatasetFast
+    else:
+        DatasetClass = Synapse_dataset
+
+    db_train = DatasetClass(base_dir=args.root_path, list_dir=args.list_dir, split="train",img_size=args.img_size,
                                norm_x_transform = x_transforms, norm_y_transform = y_transforms)
 
     print("The length of train set is: {}".format(len(db_train)))
@@ -101,7 +106,7 @@ def trainer_synapse(args, model, snapshot_path):
     trainloader = DataLoader(db_train, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True,
                              worker_init_fn=worker_init_fn)
 
-    db_test = Synapse_dataset(base_dir=args.test_path, split="test_vol", list_dir=args.list_dir, img_size=args.img_size)
+    db_test = DatasetClass(base_dir=args.test_path, split="test_vol", list_dir=args.list_dir, img_size=args.img_size)
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
 
     if args.n_gpu > 1:
