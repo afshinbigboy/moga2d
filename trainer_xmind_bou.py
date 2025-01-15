@@ -116,7 +116,6 @@ def trainer_synapse(args, model, snapshot_path):
     else:
         print("AMP disabled...")
     
-
     model.train()
 
     jc_loss = JaccardLoss()
