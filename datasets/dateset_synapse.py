@@ -163,7 +163,6 @@ class SynapseDatasetFast(Dataset):
             data_path = os.path.join(self.data_dir, sample+'.npz')
             data = np.load(data_path)
             image, label = data['image'], data['label']
-            
             self.images.append(image)
             self.labels.append(label)
 
@@ -178,7 +177,6 @@ class SynapseDatasetFast(Dataset):
             if x != self.img_size or y != self.img_size:
                 image = zoom(image, (self.img_size / x, self.img_size / y), order=3)  # why not 3?
                 label = zoom(label, (self.img_size / x, self.img_size / y), order=0)
-
         else:
             vol_name = self.sample_list[idx]
             filepath = self.data_dir + "/{}.npy.h5".format(vol_name)
