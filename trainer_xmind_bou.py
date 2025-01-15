@@ -91,10 +91,7 @@ def trainer_synapse(args, model, snapshot_path):
     ])
     y_transforms = transforms.ToTensor()
 
-    if args.fast_data:
-        DatasetClass = SynapseDatasetFast
-    else:
-        DatasetClass = Synapse_dataset
+    DatasetClass = SynapseDatasetFast if args.fast_data else Synapse_dataset
 
     db_train = DatasetClass(base_dir=args.root_path, list_dir=args.list_dir, split="train",img_size=args.img_size,
                                norm_x_transform = x_transforms, norm_y_transform = y_transforms)
