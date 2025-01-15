@@ -171,7 +171,7 @@ def trainer_synapse(args, model, snapshot_path):
 
             iter_num = iter_num + 1
             writer.add_scalar('info/lr', lr_, iter_num)
-            writer.add_scalar('info/boundary_loss', loss2, iter_num)
+            writer.add_scalar('info/boundary_loss', loss, iter_num)
             #writer.add_scalar('info/jaccard_loss', loss3, iter_num)
             #writer.add_scalar('info/total_loss', loss, iter_num)
             #writer.add_scalar('info/loss_ce', loss_ce, iter_num)
@@ -180,7 +180,7 @@ def trainer_synapse(args, model, snapshot_path):
             #acc_loss += loss.item()
             #acc_loss_dc += loss_dice.item()
             #acc_loss_ce += loss_ce.item()
-            acc_loss_bo += loss2.item()
+            acc_loss_bo += loss.item()
             #acc_loss_jc += loss3.item()
 
             if iter_num % 100 == 0:
