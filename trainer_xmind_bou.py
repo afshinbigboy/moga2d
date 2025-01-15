@@ -107,6 +107,14 @@ def trainer_synapse(args, model, snapshot_path):
     if args.n_gpu > 1:
         model = nn.DataParallel(model)
 
+    if args.amp:
+        from torch.cuda.amp import autocast, GradScaler
+        scaler = GradScaler()
+        print("AMP enabled...")
+    else:
+        print("AMP disabled...")
+    
+
     model.train()
 
     jc_loss = JaccardLoss()
@@ -136,22 +144,26 @@ def trainer_synapse(args, model, snapshot_path):
             image_batch, label_batch = sampled_batch['image'], sampled_batch['label']
             # print("data shape---------", image_batch.shape, label_batch.shape)
             image_batch, label_batch = image_batch.cuda(), label_batch.squeeze(1).cuda()
-            outputs = model(image_batch)
-            # outputs = F.interpolate(outputs, size=label_batch.shape[1:], mode='bilinear', align_corners=False)
-            #loss_ce = ce_loss(outputs, label_batch[:].long())
-            #loss_dice = dice_loss(outputs, label_batch, softmax=True)
-            #loss_jacard = jc_loss(outputs, label_batch)
-            loss_boundary = boundary_loss(outputs, label_batch[:])
 
-            #loss = 0.4 * loss_ce + 0.6 * loss_dice
-            loss2 = loss_boundary
-            #loss3 = 0.5 * loss_ce + 0.5 * loss_jacard
-            # print("loss-----------", loss)
-            optimizer.zero_grad()
-            #loss.backward()
-            loss2.backward()
-            #loss3.backward()
-            optimizer.step()
+            if args.amp:
+                with autocast():
+                    outputs = model(image_batch)
+                    loss = boundary_loss(outputs, label_batch[:])
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                outputs = model(image_batch)
+                # outputs = F.interpolate(outputs, size=label_batch.shape[1:], mode='bilinear', align_corners=False)
+                #loss_ce = ce_loss(outputs, label_batch[:].long())
+                #loss_dice = dice_loss(outputs, label_batch, softmax=True)
+                #loss_jacard = jc_loss(outputs, label_batch)
+                loss_boundary = boundary_loss(outputs, label_batch[:])
+                loss = loss_boundary
+                # print("loss-----------", loss)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
             lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
             for param_group in optimizer.param_groups:
