@@ -225,4 +225,4 @@ if __name__ == "__main__":
         ).cuda(0)
         
     trainer = {'Synapse': trainer_synapse,}
-    trainer[dataset_name](args, net, args.output_dir)
+    trainer[dataset_name](args, torch.compile(net), args.output_dir)
