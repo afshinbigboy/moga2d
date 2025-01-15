@@ -135,8 +135,8 @@ class SynapseDatasetFast(Dataset):
         self.norm_x_transform = norm_x_transform
         self.norm_y_transform = norm_y_transform
         self.split = split
-        self.sample_list = open(os.path.join(list_dir, self.split+'.txt')).readlines()
-        # self.sample_list = [d.strip('\n') for d in open(os.path.join(list_dir, self.split+'.txt')).readlines()]
+        # self.sample_list = open(os.path.join(list_dir, self.split+'.txt')).readlines()
+        self.sample_list = [d.strip('\n') for d in open(os.path.join(list_dir, self.split+'.txt')).readlines()]
         self.data_dir = base_dir
         self.img_size = img_size
 
@@ -153,7 +153,8 @@ class SynapseDatasetFast(Dataset):
             iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)})
         ], random_order=True)
         
-        self.__load_all_data()
+        if self.split == "train":
+            self.__load_all_data()
         
     
     def __load_all_data(self):
