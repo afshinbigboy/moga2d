@@ -279,6 +279,8 @@ class ChannelAggregationFFN(nn.Module):
 #         return x
 
 
+
+from .nlb import WeightedNonLocalBlock
 class MultiOrderDWConv(nn.Module):
     """Multi-order Features with Dilated DWConv Kernel.
 
@@ -290,7 +292,6 @@ class MultiOrderDWConv(nn.Module):
 
     def __init__(self,
                  embed_dims,
-                 dw_dilation=[1, 2, 3],
                  channel_split=[1, 3, 4, 2],
                  rates=[6, 12, 18],
                  flag_useAllChannels=False,
@@ -339,6 +340,7 @@ class MultiOrderDWConv(nn.Module):
             # nn.Upsample(scale_factor=14, mode='bilinear', align_corners=False),
             nn.UpsamplingBilinear2d(scale_factor=7)
         ))
+
         self.embed_dims = embed_dims
         # a channel convolution
         self.PW_conv = nn.Conv2d(  # point-wise convolution
@@ -393,7 +395,7 @@ class MultiOrderGatedAggregation(nn.Module):
             in_channels=embed_dims, out_channels=embed_dims, kernel_size=1)
         self.value = MultiOrderDWConv(
             embed_dims=embed_dims,
-            dw_dilation=attn_dw_dilation,
+            rates=[6, 12, 18],
             channel_split=attn_channel_split,
         )
         self.proj_2 = nn.Conv2d(
@@ -402,6 +404,9 @@ class MultiOrderGatedAggregation(nn.Module):
         # activation for gating and value
         self.act_value = build_act_layer(attn_act_type)
         self.act_gate = build_act_layer(attn_act_type)
+
+        # denoising module (NLB)
+        self.denoising_module = WeightedNonLocalBlock(embed_dims)
 
         # decompose
         self.sigma = ElementScale(
@@ -434,6 +439,7 @@ class MultiOrderGatedAggregation(nn.Module):
         else:
             x = self.forward_gating(self.act_gate(g), self.act_gate(v))
         x = x + shortcut
+        x = self.denoising_module(x)
         return x
 
 class MultiOrderGatedAggregationV2(nn.Module):
