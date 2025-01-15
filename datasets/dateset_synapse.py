@@ -131,7 +131,6 @@ class Synapse_dataset(Dataset):
 
 class SynapseDatasetFast(Dataset):
     def __init__(self, base_dir, list_dir, split, img_size, norm_x_transform=None, norm_y_transform=None):
-        print("Using FastDataset. :)\nLoading all data into memory...")
         self.norm_x_transform = norm_x_transform
         self.norm_y_transform = norm_y_transform
         self.split = split
@@ -158,6 +157,7 @@ class SynapseDatasetFast(Dataset):
         
     
     def __load_all_data(self):
+        print("Using FastDataset. :)\nLoading all data into memory...")
         self.images, self.labels = [], []
         for sample in tqdm(self.sample_list, desc="loading all slices"):
             data_path = os.path.join(self.data_dir, sample+'.npz')
